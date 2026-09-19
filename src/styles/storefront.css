@@ -1,0 +1,488 @@
+/*
+ * Client storefront design system. Scoped entirely to .storefront.
+ *
+ * Reads nothing from tokens.css and must never be given BLITZ values.
+ * Brand color and font values are injected as custom properties on the
+ * root element at render time; every other color is mixed from those, so
+ * this file contains no color literals beyond last-resort fallbacks.
+ */
+
+.storefront {
+  /* Overwritten inline from config.brand. These keep a broken config legible. */
+  --sf-bg: white;
+  --sf-text: black;
+  --sf-primary: black;
+  --sf-accent: black;
+  --sf-on-primary: white;
+  --sf-on-accent: white;
+  --sf-font-display: Georgia, serif;
+  --sf-font-body: system-ui, sans-serif;
+
+  /* Derived from the injected brand colors. */
+  --sf-muted: color-mix(in srgb, var(--sf-text) 62%, var(--sf-bg));
+  --sf-subtle: color-mix(in srgb, var(--sf-text) 44%, var(--sf-bg));
+  --sf-border: color-mix(in srgb, var(--sf-text) 14%, var(--sf-bg));
+  --sf-surface: color-mix(in srgb, var(--sf-text) 4%, var(--sf-bg));
+
+  --sf-pad: 20px;
+  --sf-max: 660px;
+  --sf-radius: 12px;
+  --sf-tap: 48px;
+
+  background: var(--sf-bg);
+  color: var(--sf-text);
+  font-family: var(--sf-font-body);
+  font-size: 16px;
+  line-height: 1.55;
+  min-height: 100dvh;
+  overflow-wrap: break-word;
+  -webkit-font-smoothing: antialiased;
+}
+
+.storefront *,
+.storefront *::before,
+.storefront *::after {
+  box-sizing: border-box;
+}
+
+.storefront img {
+  display: block;
+  max-width: 100%;
+  height: auto;
+}
+
+.storefront a {
+  color: inherit;
+}
+
+/* Layout ------------------------------------------------------------ */
+
+.sf-wrap {
+  width: 100%;
+  max-width: var(--sf-max);
+  margin-inline: auto;
+  padding-inline: var(--sf-pad);
+}
+
+.sf-section {
+  padding-block: 40px;
+  border-top: 1px solid var(--sf-border);
+}
+
+.sf-section-title {
+  margin: 0 0 20px;
+  font-family: var(--sf-font-display);
+  font-size: 26px;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  line-height: 1.15;
+}
+
+/* Hero -------------------------------------------------------------- */
+
+.sf-hero {
+  background: var(--sf-primary);
+  color: var(--sf-on-primary);
+  padding-block: 64px 56px;
+  text-align: center;
+}
+
+.sf-hero-logo {
+  margin: 0 auto 24px;
+  border-radius: 50%;
+  object-fit: cover;
+}
+
+.sf-hero-name {
+  margin: 0;
+  font-family: var(--sf-font-display);
+  font-size: 44px;
+  font-weight: 700;
+  letter-spacing: -0.03em;
+  line-height: 1.05;
+}
+
+.sf-hero-tagline {
+  margin: 16px auto 0;
+  max-width: 34ch;
+  font-size: 17px;
+  opacity: 0.86;
+}
+
+.sf-hero-cta {
+  margin-top: 32px;
+}
+
+/* Buttons ----------------------------------------------------------- */
+
+.sf-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: var(--sf-tap);
+  padding: 14px 32px;
+  border: 0;
+  border-radius: 999px;
+  background: var(--sf-accent);
+  color: var(--sf-on-accent);
+  font-family: var(--sf-font-body);
+  font-size: 16px;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.sf-button:hover {
+  filter: brightness(0.93);
+}
+
+.sf-button:focus-visible {
+  outline: 3px solid var(--sf-accent);
+  outline-offset: 3px;
+}
+
+/* Services ---------------------------------------------------------- */
+
+.sf-services {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.sf-service {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 4px 16px;
+  padding-block: 16px;
+  border-bottom: 1px solid var(--sf-border);
+}
+
+.sf-service:last-child {
+  border-bottom: 0;
+}
+
+.sf-service-name {
+  margin: 0;
+  font-size: 17px;
+  font-weight: 600;
+  line-height: 1.3;
+}
+
+.sf-service-price {
+  grid-column: 2;
+  grid-row: 1;
+  font-size: 17px;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.sf-service-desc {
+  grid-column: 1 / -1;
+  margin: 0;
+  color: var(--sf-muted);
+  font-size: 15px;
+}
+
+.sf-service-meta {
+  grid-column: 1 / -1;
+  color: var(--sf-subtle);
+  font-size: 13px;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+/* Gallery ----------------------------------------------------------- */
+
+.sf-gallery {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.sf-gallery figure {
+  margin: 0;
+}
+
+.sf-gallery img {
+  width: 100%;
+  aspect-ratio: 1 / 1;
+  object-fit: cover;
+  border-radius: var(--sf-radius);
+  background: var(--sf-surface);
+}
+
+.sf-gallery figcaption {
+  margin-top: 6px;
+  color: var(--sf-muted);
+  font-size: 13px;
+}
+
+/* Booking, service area, hours -------------------------------------- */
+
+.sf-booking {
+  text-align: center;
+}
+
+.sf-booking-note {
+  margin: 0 auto 24px;
+  max-width: 44ch;
+  color: var(--sf-muted);
+  font-size: 15px;
+}
+
+.sf-terms {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin: 16px 0 0;
+  padding: 0;
+  list-style: none;
+  color: var(--sf-muted);
+  font-size: 15px;
+}
+
+.sf-body-text {
+  margin: 0;
+  font-size: 16px;
+}
+
+.sf-hours {
+  margin: 0;
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 10px 20px;
+}
+
+.sf-hours dt {
+  font-weight: 600;
+  font-size: 15px;
+}
+
+.sf-hours dd {
+  margin: 0;
+  color: var(--sf-muted);
+  font-size: 15px;
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+}
+
+.sf-hours-closed {
+  color: var(--sf-subtle);
+}
+
+.sf-hours-note {
+  margin: 20px 0 0;
+  color: var(--sf-subtle);
+  font-size: 13px;
+}
+
+/* Policies ---------------------------------------------------------- */
+
+.sf-policy {
+  margin-bottom: 24px;
+}
+
+.sf-policy:last-child {
+  margin-bottom: 0;
+}
+
+.sf-policy-title {
+  margin: 0 0 6px;
+  font-size: 15px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.sf-policy-body {
+  margin: 0;
+  color: var(--sf-muted);
+  font-size: 15px;
+}
+
+/* FAQ --------------------------------------------------------------- */
+
+.sf-faq {
+  border-top: 1px solid var(--sf-border);
+}
+
+.sf-faq-item {
+  border-bottom: 1px solid var(--sf-border);
+}
+
+.sf-faq-item summary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  min-height: var(--sf-tap);
+  padding-block: 14px;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  list-style: none;
+}
+
+.sf-faq-item summary::-webkit-details-marker {
+  display: none;
+}
+
+.sf-faq-item summary::after {
+  content: '+';
+  flex: none;
+  font-size: 22px;
+  font-weight: 400;
+  line-height: 1;
+  color: var(--sf-subtle);
+}
+
+.sf-faq-item[open] summary::after {
+  content: '\2212';
+}
+
+.sf-faq-answer {
+  margin: 0;
+  padding-bottom: 18px;
+  color: var(--sf-muted);
+  font-size: 15px;
+}
+
+/* Footer ------------------------------------------------------------ */
+
+.sf-footer {
+  background: var(--sf-primary);
+  color: var(--sf-on-primary);
+  padding-block: 40px;
+  text-align: center;
+}
+
+.sf-footer-name {
+  margin: 0 0 20px;
+  font-family: var(--sf-font-display);
+  font-size: 22px;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+}
+
+.sf-footer-links {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.sf-footer-links a {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  padding-inline: 12px;
+  font-size: 16px;
+  text-decoration: none;
+  opacity: 0.9;
+}
+
+.sf-footer-links a:hover {
+  opacity: 1;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+/* Sticky booking bar — mobile only ---------------------------------- */
+
+.sf-sticky {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 20;
+  padding: 12px var(--sf-pad);
+  padding-bottom: calc(12px + env(safe-area-inset-bottom, 0px));
+  background: var(--sf-bg);
+  border-top: 1px solid var(--sf-border);
+  transform: translateY(110%);
+  transition: transform 180ms ease-out;
+}
+
+.sf-sticky[data-visible='true'] {
+  transform: translateY(0);
+}
+
+.sf-sticky .sf-button {
+  width: 100%;
+}
+
+/* Keeps the bar from covering the last of the footer. */
+.storefront:has(.sf-sticky) .sf-footer {
+  padding-bottom: 96px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .sf-sticky {
+    transition: none;
+  }
+}
+
+@media (min-width: 768px) {
+  .sf-sticky {
+    display: none;
+  }
+
+  .storefront:has(.sf-sticky) .sf-footer {
+    padding-bottom: 40px;
+  }
+
+  .sf-hero {
+    padding-block: 96px 80px;
+  }
+
+  .sf-hero-name {
+    font-size: 60px;
+  }
+
+  .sf-section {
+    padding-block: 56px;
+  }
+
+  .sf-gallery {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+/* Unknown slug ------------------------------------------------------ */
+
+.sf-404 {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  min-height: 100dvh;
+  padding: var(--sf-pad, 20px);
+  background: canvas;
+  color: canvastext;
+  font-family: system-ui, sans-serif;
+  text-align: center;
+}
+
+.sf-404 h1 {
+  margin: 0;
+  font-size: 24px;
+  font-weight: 700;
+}
+
+.sf-404 p {
+  margin: 0;
+  font-size: 15px;
+  opacity: 0.7;
+}

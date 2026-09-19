@@ -4,10 +4,15 @@ import { Redirect } from './components/Redirect'
 import { Admin } from './pages/Admin'
 import { Login } from './pages/Login'
 import { Portal } from './pages/Portal'
+import { StorefrontRoute } from './storefront/StorefrontRoute'
 
-function Routes() {
+function currentPath() {
+  return window.location.pathname.replace(/\/+$/, '') || '/'
+}
+
+function BlitzRoutes() {
   const { user, loading } = useAuth()
-  const path = window.location.pathname.replace(/\/+$/, '') || '/'
+  const path = currentPath()
 
   if (path === '/login') return <Login />
   if (path === '/admin') return <ProtectedRoute><Admin /></ProtectedRoute>
@@ -18,12 +23,18 @@ function Routes() {
 }
 
 export default function App() {
+  const storefront = /^\/s\/([^/]+)$/.exec(currentPath())
+
+  // Storefronts render outside .blitz-app, and outside the BLITZ shell, so
+  // they cannot inherit a single token from tokens.css.
+  if (storefront) return <StorefrontRoute slug={decodeURIComponent(storefront[1])} />
+
   return (
     <div className="blitz-app min-h-dvh">
       <header className="app-header">
         <span className="app-name">BLITZ</span>
       </header>
-      <Routes />
+      <BlitzRoutes />
     </div>
   )
 }

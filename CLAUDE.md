@@ -42,15 +42,19 @@ Requires Node 22 (`.nvmrc`). Node is not on the default shell PATH — run
 ## Layout
 
 ```
-src/styles/tokens.css   design tokens — the only file with hex values
-src/styles/index.css    Tailwind entry, token-to-utility mapping, component classes
-src/auth/               AuthContext (current user), ProtectedRoute
-src/pages/              Login, Admin, Portal
-src/lib/supabase.ts     Supabase client
-src/types/              shared types, incl. the storefront_config shape
-src/App.tsx             route table
-supabase/migrations/    schema and RLS policies
-public/_redirects       SPA fallback for Cloudflare Pages
+src/styles/tokens.css      BLITZ design tokens — BLITZ's only hex values
+src/styles/index.css       Tailwind entry, token-to-utility mapping, component classes
+src/styles/storefront.css  storefront design system, scoped to .storefront
+src/auth/                  AuthContext (current user), ProtectedRoute
+src/pages/                 Login, Admin, Portal
+src/storefront/            the storefront renderer and its sections
+src/data/                  placeholder storefront config
+src/lib/supabase.ts        Supabase client
+src/types/                 shared types, incl. the storefront_config shape
+src/App.tsx                route table
+supabase/migrations/       schema and RLS policies
+supabase/seeds/            demo data
+public/_redirects          SPA fallback for Cloudflare Pages
 ```
 
 ## How this codebase works
@@ -69,6 +73,32 @@ public/_redirects       SPA fallback for Cloudflare Pages
   client that cannot reach Supabase.
 - **`supabase` is `null` when env vars are missing** rather than throwing at
   import. Guard before use.
+
+## Storefronts
+
+`/s/:slug` is public and renders a client storefront from one `StorefrontConfig`.
+A single renderer serves every client; there is no per-client code.
+
+- It renders **outside** `.blitz-app` and outside the BLITZ shell, so it cannot
+  inherit a token from tokens.css.
+- `storefront.css` is scoped to `.storefront` and holds no color literals. The
+  four `config.brand.colors` values are injected as custom properties on the
+  root at render time, and every other color is `color-mix`ed down from them —
+  so a config fully determines how its storefront looks, and two configs give
+  two unrelated-looking businesses.
+- Readable foregrounds for the brand primary and accent are picked in
+  TypeScript (`readableOn` in `src/storefront/format.ts`), because CSS cannot
+  choose a contrasting color on its own.
+- `config.brand.fonts` holds family names only. No webfont is ever fetched, and
+  the gallery uses inline data URIs, so a storefront makes no third-party
+  request.
+- Every section returns `null` when its slice of config is empty. An empty
+  config renders an empty page — never a heading with nothing under it.
+- The page reads the `storefronts` view, never the `businesses` table, so no
+  CRM column is reachable from an unauthenticated page.
+
+A new section means a component under `src/storefront/sections/` carrying its
+own emptiness guard, rendered from `Storefront.tsx`.
 
 ## Storefront config
 
@@ -121,3 +151,9 @@ admin view from the portal view. `appointments.status` is a separate pipeline
 
 Indexes: `clients (business_id)`, `appointments (business_id, starts_at)`,
 `appointments (client_id)`.
+
+`businesses.slug` is the public storefront URL segment and is unique and not
+null. The `storefronts` view is the only public projection over `businesses`: it
+exposes `slug` and `storefront_config` for rows that carry a config, and nothing
+else. It runs with the view owner's privileges, which is what keeps the
+owner-only policies on `businesses` untouched.
