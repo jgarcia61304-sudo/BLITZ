@@ -9,3 +9,4 @@ dist/
 .DS_Store
 .wrangler/
 supabase/.temp/
+.mcp.json

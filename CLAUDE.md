@@ -157,3 +157,21 @@ null. The `storefronts` view is the only public projection over `businesses`: it
 exposes `slug` and `storefront_config` for rows that carry a config, and nothing
 else. It runs with the view owner's privileges, which is what keeps the
 owner-only policies on `businesses` untouched.
+
+## Autonomous working rules
+
+Work through the whole task before reporting back. Do not stop to ask permission for
+routine steps.
+
+Before saying a task is done:
+1. Run `npm run typecheck` and fix every error. A task with type errors is not done.
+2. For any UI or page change, start the dev server and open the page with the Playwright
+   tools. Confirm it renders, then click through the flow that was changed. Fix what breaks.
+3. For any database change, apply it through the Supabase tools and confirm the table
+   afterwards. Do not hand back SQL for the user to paste.
+4. Commit working checkpoints with git as you go, so a bad change can be undone.
+
+If something fails three times in a row, stop and explain what is blocking, in plain
+language, without jargon. The user is non-technical.
+
+Report back with what changed and what to look at, not a list of steps taken.
