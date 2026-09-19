@@ -1,31 +1,19 @@
-import { useEffect, useState } from 'react'
-import type { RefObject } from 'react'
+import { formatPrice } from '../format'
+import { scrollToId } from '../scroll'
 
-// Mobile-only booking bar. Slides in once the hero has scrolled past.
-export function StickyBar({ watch }: { watch: RefObject<HTMLDivElement | null> }) {
-  const [visible, setVisible] = useState(false)
-
-  useEffect(() => {
-    const sentinel = watch.current
-    if (!sentinel || typeof IntersectionObserver === 'undefined') return
-
-    const observer = new IntersectionObserver(
-      ([entry]) => {
-        // Only once the sentinel has left the top of the viewport, so the
-        // bar stays hidden while the hero is still on screen.
-        setVisible(!entry.isIntersecting && entry.boundingClientRect.top < 0)
-      },
-      { threshold: 0 },
-    )
-    observer.observe(sentinel)
-    return () => observer.disconnect()
-  }, [watch])
-
+/** Persistent, per spec item 7: one action always reachable. */
+export function StickyBar({ fromPrice, action }: { fromPrice: number; action: string }) {
   return (
-    <div className="sf-sticky" data-visible={visible} aria-hidden={!visible}>
-      <a className="sf-button" href="#book" tabIndex={visible ? undefined : -1}>
-        Book Now
-      </a>
+    <div className="sf-sticky">
+      <div className="sf-sticky-inner">
+        <p className="sf-sticky-price">
+          From
+          <strong>{formatPrice(fromPrice)}</strong>
+        </p>
+        <button className="sf-button" type="button" onClick={() => scrollToId('book')}>
+          {action}
+        </button>
+      </div>
     </div>
   )
 }

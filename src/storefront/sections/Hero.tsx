@@ -1,32 +1,42 @@
-import type { Brand } from '../../types/storefront'
-import { hasText } from '../format'
+import type { StorefrontContent } from '../../types/storefront'
+import { formatRating, sizedPhoto, starGlyphs } from '../format'
+import { scrollToId } from '../scroll'
 
-export function Hero({ brand, showCta }: { brand: Brand | undefined; showCta: boolean }) {
-  const name = brand?.name
-  const tagline = brand?.tagline
-  const logo = brand?.logo_url
-  if (!hasText(name)) return null
+/** Full-bleed photography above the fold, per spec item 1. */
+export function Hero({ content }: { content: StorefrontContent }) {
+  const { business, proof, photos } = content
+  const lead = photos[0]
 
   return (
     <header className="sf-hero">
-      <div className="sf-wrap">
-        {hasText(logo) && (
-          <img
-            className="sf-hero-logo"
-            src={logo}
-            alt=""
-            width={96}
-            height={96}
-            decoding="async"
-          />
-        )}
-        <h1 className="sf-hero-name">{name}</h1>
-        {hasText(tagline) && <p className="sf-hero-tagline">{tagline}</p>}
-        {showCta && (
-          <p className="sf-hero-cta">
-            <a className="sf-button" href="#book">Book Now</a>
-          </p>
-        )}
+      <div className="sf-hero-media">
+        <img
+          src={sizedPhoto(lead, 1200)}
+          srcSet={`${sizedPhoto(lead, 780)} 780w, ${sizedPhoto(lead, 1200)} 1200w, ${sizedPhoto(lead, 1800)} 1800w`}
+          sizes="100vw"
+          alt=""
+          width={1200}
+          height={1600}
+          decoding="async"
+          // React 18 does not know the camelCase prop; the lowercase DOM
+          // attribute passes straight through and is what the browser reads.
+          {...{ fetchpriority: 'high' }}
+        />
+      </div>
+      <div className="sf-wrap sf-hero-inner">
+        <h1 className="sf-hero-name">{business.name}</h1>
+        <p className="sf-hero-tagline">{business.tagline}</p>
+        <p className="sf-hero-rating">
+          <span className="sf-stars" aria-hidden="true">{starGlyphs(proof.rating)}</span>
+          <span>
+            {formatRating(proof.rating)} from {proof.reviewCount} reviews
+          </span>
+        </p>
+        <p className="sf-hero-cta">
+          <button className="sf-button" type="button" onClick={() => scrollToId('book')}>
+            Book Now
+          </button>
+        </p>
       </div>
     </header>
   )

@@ -1,23 +1,31 @@
 import { useEffect, useState } from 'react'
 import { supabase } from '../lib/supabase'
-import type { StorefrontConfig } from '../types/storefront'
+import { parseStorefront } from '../types/storefront'
+import type { StorefrontContent } from '../types/storefront'
 import { StorefrontNotFound } from './NotFound'
 import { Storefront } from './Storefront'
+import '@fontsource-variable/fraunces'
+import '@fontsource-variable/inter'
 import '../styles/storefront.css'
 
 type State =
   | { status: 'loading' }
-  | { status: 'found'; config: StorefrontConfig }
-  | { status: 'missing' }
+  | { status: 'ready'; content: StorefrontContent }
+  | { status: 'held' }
 
-// Reads the public storefronts view, never the businesses table, so no CRM
-// column is reachable from an unauthenticated page.
+/*
+ * Reads the public storefronts view, never the businesses table, so no CRM
+ * column is reachable from an unauthenticated page.
+ *
+ * Fails closed: content that does not satisfy the schema holds the storefront
+ * rather than rendering a half-built page.
+ */
 export function StorefrontRoute({ slug }: { slug: string }) {
   const [state, setState] = useState<State>({ status: 'loading' })
 
   useEffect(() => {
     if (!supabase) {
-      setState({ status: 'missing' })
+      setState({ status: 'held' })
       return
     }
 
@@ -29,8 +37,17 @@ export function StorefrontRoute({ slug }: { slug: string }) {
       .maybeSingle()
       .then(({ data, error }) => {
         if (!active) return
-        const config = data?.storefront_config as StorefrontConfig | null | undefined
-        setState(error || !config ? { status: 'missing' } : { status: 'found', config })
+        if (error || !data?.storefront_config) {
+          setState({ status: 'held' })
+          return
+        }
+        const parsed = parseStorefront(data.storefront_config)
+        if (!parsed.success) {
+          console.error('Storefront held — content failed validation:', parsed.error.issues)
+          setState({ status: 'held' })
+          return
+        }
+        setState({ status: 'ready', content: parsed.data })
       })
 
     return () => {
@@ -39,6 +56,6 @@ export function StorefrontRoute({ slug }: { slug: string }) {
   }, [slug])
 
   if (state.status === 'loading') return null
-  if (state.status === 'missing') return <StorefrontNotFound />
-  return <Storefront config={state.config} />
+  if (state.status === 'held') return <StorefrontNotFound />
+  return <Storefront content={state.content} />
 }

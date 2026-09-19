@@ -1,34 +1,33 @@
-import type { GalleryImage } from '../../types/storefront'
-import { hasText } from '../format'
+import { useState } from 'react'
+import { Lightbox } from '../Lightbox'
+import { sizedPhoto } from '../format'
 
-export function Gallery({ gallery }: { gallery: GalleryImage[] | undefined }) {
-  const items = [...(gallery ?? [])]
-    .filter((image) => hasText(image?.url))
-    .sort((a, b) => (a.order ?? 0) - (b.order ?? 0))
-  if (items.length === 0) return null
+export function Gallery({ photos, businessName }: { photos: string[]; businessName: string }) {
+  const [open, setOpen] = useState<number | null>(null)
 
   return (
-    <section className="sf-section" aria-labelledby="sf-gallery-title">
-      <div className="sf-wrap">
-        <h2 className="sf-section-title" id="sf-gallery-title">Work</h2>
-        <ul className="sf-gallery">
-          {items.map((image, index) => (
-            <li key={`${image.url}-${index}`}>
-              <figure>
-                <img
-                  src={image.url}
-                  alt={hasText(image.alt_text) ? image.alt_text : ''}
-                  width={800}
-                  height={800}
-                  loading="lazy"
-                  decoding="async"
-                />
-                {hasText(image.caption) && <figcaption>{image.caption}</figcaption>}
-              </figure>
-            </li>
-          ))}
-        </ul>
-      </div>
-    </section>
+    <div className="sf-wrap">
+      <p className="sf-eyebrow">Recent work</p>
+      <h2 className="sf-h2" id="sf-gallery-title">The work</h2>
+      <ul className="sf-gallery">
+        {photos.map((photo, index) => (
+          <li key={`${photo}-${index}`}>
+            <button type="button" onClick={() => setOpen(index)} aria-label={`Expand photo ${index + 1} of ${photos.length}`}>
+              <img
+                src={sizedPhoto(photo, index === 0 ? 900 : 500)}
+                alt={`${businessName} work, photo ${index + 1}`}
+                width={index === 0 ? 800 : 500}
+                height={index === 0 ? 500 : 500}
+                loading={index === 0 ? 'eager' : 'lazy'}
+                decoding="async"
+              />
+            </button>
+          </li>
+        ))}
+      </ul>
+      {open !== null && (
+        <Lightbox photos={photos} startIndex={open} onClose={() => setOpen(null)} />
+      )}
+    </div>
   )
 }

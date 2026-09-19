@@ -1,130 +1,88 @@
-/**
- * Shape of businesses.storefront_config (jsonb).
+import { z } from 'zod'
+
+/*
+ * The storefront content contract, per docs/storefront-spec.md.
+ * One JSON object per business, validated before render. Fail closed.
  *
- * Money is integer cents. Times of day are 24h 'HH:MM' strings.
- * Dates are 'YYYY-MM-DD'. Timestamps are timestamptz in Postgres.
+ * Two deliberate departures from the spec's example JSON, both forced by
+ * rules that outrank it:
+ *
+ * 1. Money is integer cents, not dollars — "All money is integer cents" in
+ *    CLAUDE.md, and businesses.storefront_config already stores cents. So
+ *    `price: 4500` is $45.00 and `depositAmount: 1500` is $15.00.
+ * 2. Services keep an `id`. appointments.service_id points at it, and a past
+ *    appointment loses its link to the menu without it.
  */
 
-export type BrandColors = {
-  primary: string
-  accent: string
-  background: string
-  text: string
-}
+export const THEMES = ['ink', 'sand', 'slate', 'clay'] as const
+export type ThemeName = (typeof THEMES)[number]
 
-export type BrandFonts = {
-  display: string
-  body: string
-}
+// MoneyEngine is the one section that varies, and it switches on this, so it
+// is an enum rather than free text — an unknown vertical must fail validation
+// rather than render nothing.
+export const VERTICALS = ['beauty', 'events', 'fitness'] as const
+export type Vertical = (typeof VERTICALS)[number]
 
-export type Brand = {
-  name: string
-  tagline: string
-  logo_url: string
-  colors: BrandColors
-  fonts: BrandFonts
-}
+const nonEmpty = z.string().trim().min(1)
+const cents = z.number().int().nonnegative()
 
-export type Contact = {
-  phone: string
-  email: string
-  instagram_handle: string
-  booking_email: string
-}
+export const serviceSchema = z.object({
+  id: nonEmpty,
+  name: nonEmpty,
+  price: cents,
+  durationMin: z.number().int().positive(),
+  description: z.string().default(''),
+  photo: z.string().default(''),
+})
 
-export type Service = {
-  // appointments.service_id refers to this value.
-  id: string
-  name: string
-  description: string
-  price_cents: number
-  duration_minutes: number
-  active: boolean
-}
+export const reviewSchema = z.object({
+  quote: nonEmpty,
+  author: nonEmpty,
+  date: nonEmpty,
+})
 
-export type GalleryImage = {
-  url: string
-  caption: string
-  alt_text: string
-  order: number
-}
+export const faqSchema = z.object({ q: nonEmpty, a: nonEmpty })
 
-export type PaymentMode = 'card_on_file' | 'deposit' | 'none'
+export const storefrontContentSchema = z.object({
+  business: z.object({
+    name: nonEmpty,
+    tagline: nonEmpty,
+    category: z.enum(VERTICALS),
+    serviceArea: nonEmpty,
+  }),
+  theme: z.enum(THEMES),
+  proof: z.object({
+    rating: z.number().min(0).max(5),
+    reviewCount: z.number().int().nonnegative(),
+    scarcity: z.string().default(''),
+  }),
+  services: z.array(serviceSchema).min(1),
+  // Spec: "Minimum 6 photos or it does not ship."
+  photos: z.array(nonEmpty).min(6),
+  // Spec: "2-3 real quotes with attribution."
+  reviews: z.array(reviewSchema).min(2).max(3),
+  faq: z.array(faqSchema).min(1),
+  contact: z.object({
+    phone: z.string().default(''),
+    email: z.string().default(''),
+    instagram: z.string().default(''),
+    address: z.string().default(''),
+    // Day name -> display string, e.g. { Monday: 'Closed' }.
+    hours: z.record(z.string(), z.string()).default({}),
+  }),
+  money: z.object({
+    depositAmount: cents,
+    cancellationWindowHrs: z.number().int().nonnegative(),
+    stripeAccountId: z.string().default(''),
+  }),
+})
 
-export type BookingSettings = {
-  payment_mode: PaymentMode
-  // Null unless payment_mode is 'deposit'.
-  deposit_cents: number | null
-  cancellation_window_hours: number
-  late_cancellation_fee_cents: number
-  no_show_fee_cents: number
-  // True for mobile businesses.
-  requires_client_address: boolean
-  // Null when travel is included.
-  travel_fee_cents: number | null
-}
+export type StorefrontContent = z.infer<typeof storefrontContentSchema>
+export type Service = z.infer<typeof serviceSchema>
+export type Review = z.infer<typeof reviewSchema>
+export type FaqEntry = z.infer<typeof faqSchema>
 
-// 24h 'HH:MM'.
-export type TimeRange = {
-  start: string
-  end: string
-}
-
-export type Weekday = 'mon' | 'tue' | 'wed' | 'thu' | 'fri' | 'sat' | 'sun'
-
-export type WeeklyAvailability = Record<Weekday, TimeRange[]>
-
-export type Availability = {
-  // IANA name, e.g. 'America/New_York'.
-  timezone: string
-  weekly: WeeklyAvailability
-  // 'YYYY-MM-DD'.
-  blackout_dates: string[]
-  min_notice_hours: number
-  // Gap between appointments.
-  buffer_minutes: number
-}
-
-export type ServiceArea = {
-  is_mobile: boolean
-  // Plain text, e.g. 'Miami-Dade'.
-  description: string
-  base_address: string | null
-  radius_miles: number | null
-}
-
-export type PolicySection = {
-  title: string
-  body: string
-}
-
-export type Policies = {
-  cancellation_text: string
-  late_text: string
-  additional: PolicySection[]
-}
-
-export type FaqItem = {
-  question: string
-  answer: string
-  order: number
-}
-
-export type Seo = {
-  title: string
-  description: string
-  og_image_url: string
-}
-
-export type StorefrontConfig = {
-  brand: Brand
-  contact: Contact
-  services: Service[]
-  gallery: GalleryImage[]
-  booking: BookingSettings
-  availability: Availability
-  service_area: ServiceArea
-  policies: Policies
-  faq: FaqItem[]
-  seo: Seo
+/** Fail closed: anything that does not validate is not a storefront. */
+export function parseStorefront(input: unknown) {
+  return storefrontContentSchema.safeParse(input)
 }

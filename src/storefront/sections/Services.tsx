@@ -1,34 +1,38 @@
 import type { Service } from '../../types/storefront'
-import { formatDuration, formatPrice, hasText } from '../format'
+import { formatDuration, formatPrice, hasText, sizedPhoto } from '../format'
 
-export function Services({ services }: { services: Service[] | undefined }) {
-  const items = (services ?? []).filter(
-    (service) => hasText(service?.name) && service.active !== false,
-  )
-  if (items.length === 0) return null
-
+export function Services({ services }: { services: Service[] }) {
   return (
-    <section className="sf-section" aria-labelledby="sf-services-title">
-      <div className="sf-wrap">
-        <h2 className="sf-section-title" id="sf-services-title">Services</h2>
-        <ul className="sf-services">
-          {items.map((service, index) => {
-            const duration = formatDuration(service.duration_minutes)
-            return (
-              <li className="sf-service" key={hasText(service.id) ? service.id : index}>
-                <h3 className="sf-service-name">{service.name}</h3>
-                {Number.isFinite(service.price_cents) && (
-                  <span className="sf-service-price">{formatPrice(service.price_cents)}</span>
-                )}
-                {hasText(service.description) && (
-                  <p className="sf-service-desc">{service.description}</p>
-                )}
-                {hasText(duration) && <span className="sf-service-meta">{duration}</span>}
-              </li>
-            )
-          })}
-        </ul>
-      </div>
-    </section>
+    <div className="sf-wrap">
+      <p className="sf-eyebrow">The menu</p>
+      <h2 className="sf-h2" id="sf-services-title">Services</h2>
+      <ul className="sf-services">
+        {services.map((service) => {
+          const duration = formatDuration(service.durationMin)
+          const photo = hasText(service.photo)
+          return (
+            <li className={photo ? 'sf-service' : 'sf-service sf-service-nophoto'} key={service.id}>
+              {photo && (
+                <img
+                  className="sf-service-thumb"
+                  src={sizedPhoto(service.photo, 160)}
+                  alt=""
+                  width={64}
+                  height={64}
+                  loading="lazy"
+                  decoding="async"
+                />
+              )}
+              <h3 className="sf-service-name">{service.name}</h3>
+              <span className="sf-service-price">{formatPrice(service.price)}</span>
+              {hasText(service.description) && (
+                <p className="sf-service-desc">{service.description}</p>
+              )}
+              {hasText(duration) && <span className="sf-service-dur">{duration}</span>}
+            </li>
+          )
+        })}
+      </ul>
+    </div>
   )
 }

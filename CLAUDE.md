@@ -93,60 +93,55 @@ public/_redirects          SPA fallback for Cloudflare Pages
 
 ## Storefronts
 
-`/s/:slug` is public and renders a client storefront from one `StorefrontConfig`.
-A single renderer serves every client; there is no per-client code.
+`/s/:slug` is public and renders a client storefront from one validated content
+object, following `docs/storefront-spec.md`. One renderer serves every client;
+there is no per-client code and no per-client design decision.
 
 - It renders **outside** `.blitz-app` and outside the BLITZ shell, so it cannot
   inherit a token from tokens.css.
-- `storefront.css` is scoped to `.storefront` and holds no color literals. The
-  four `config.brand.colors` values are injected as custom properties on the
-  root at render time, and every other color is `color-mix`ed down from them —
-  so a config fully determines how its storefront looks, and two configs give
-  two unrelated-looking businesses.
-- Readable foregrounds for the brand primary and accent are picked in
-  TypeScript (`readableOn` in `src/storefront/format.ts`), because CSS cannot
-  choose a contrasting color on its own.
-- `config.brand.fonts` holds family names only. No webfont is ever fetched, and
-  the gallery uses inline data URIs, so a storefront makes no third-party
-  request.
-- Every section returns `null` when its slice of config is empty. An empty
-  config renders an empty page — never a heading with nothing under it.
+- `storefront.css` is scoped to `.storefront`. Layout, type scale, spacing and
+  motion are fixed there. A business varies only by content and by one of four
+  themes, selected with `data-theme` on the root.
+- **Themes are an enum: `ink`, `sand`, `slate`, `clay`.** Never invent a colour
+  and never add a fifth without re-running the contrast check. Every set is
+  verified at body text >= 4.5:1 on both bg and surface, on-accent >= 4.5:1 on
+  accent, and accent >= 3:1 on bg.
+- Section order is fixed and must not be reordered: Hero, ProofBar, Services,
+  Gallery, MoneyEngine, Reviews, FAQ, Location, Footer, plus a persistent
+  StickyBar.
+- **MoneyEngine is the only section that varies**, switching on
+  `business.category` (`beauty` / `events` / `fitness`). Its copy and action
+  change; its layout does not.
+- Scroll-entry motion lives in `Reveal.tsx`: rise 20px, fade in, 500ms ease-out,
+  once. It honours `prefers-reduced-motion`. Wrap new sections in `Reveal`
+  rather than animating them individually.
+- Lenis drives the scroll, so anchor jumps go through `scrollToId` in
+  `scroll.ts`, not `href="#..."`.
 - The page reads the `storefronts` view, never the `businesses` table, so no
   CRM column is reachable from an unauthenticated page.
 
-A new section means a component under `src/storefront/sections/` carrying its
-own emptiness guard, rendered from `Storefront.tsx`.
+## Storefront content contract
 
-## Storefront config
+`businesses.storefront_config` is jsonb. `src/types/storefront.ts` holds the Zod
+schema and is the source of truth; the TypeScript types are inferred from it.
 
-`businesses.storefront_config` is jsonb. `src/types/storefront.ts` defines its
-shape and is the source of truth; this table is the map.
+**Validation fails closed.** Content that does not satisfy the schema holds the
+storefront and shows the unavailable page. It never renders half a storefront.
+The schema enforces the spec's own gates: at least 6 photos, 2-3 reviews, a
+theme inside the enum, and a known vertical.
 
-| Key | Holds |
-| --- | --- |
-| `brand` | name, tagline, logo, colors, fonts |
-| `contact` | phone, email, instagram, booking email |
-| `services` | the menu — id, name, description, price, duration, active |
-| `gallery` | images with caption, alt text, order |
-| `booking` | payment mode, deposit, cancellation window, fees, travel |
-| `availability` | timezone, weekly hours, blackout dates, notice, buffer |
-| `service_area` | mobile flag, description, base address, radius |
-| `policies` | cancellation and late text, plus extra sections |
-| `faq` | questions with order |
-| `seo` | title, description, og image |
+Two deliberate departures from the spec's example JSON, both forced by rules
+that outrank it:
 
-Conventions across the whole config:
+- **Money is integer cents, not dollars.** `price: 4500` is $45.00 and
+  `depositAmount: 1500` is $15.00. The spec's example reads as dollars; the
+  standing money rule and the existing column both say cents.
+- **Services keep an `id`.** The spec's service shape omits it, but
+  `appointments.service_id` points at it, and a past appointment loses its link
+  to the menu without one.
 
-- Money is integer cents — never floats, never strings.
-- Times of day are 24h `'HH:MM'`, dates are `'YYYY-MM-DD'`, timezone is an IANA
-  name. Timestamps in Postgres are timestamptz.
-- `services[].id` is what `appointments.service_id` points at. It has to stay
-  stable — changing it orphans the link from every past appointment.
-- Only four fields are nullable: `booking.deposit_cents` (null unless
-  payment_mode is `deposit`), `booking.travel_fee_cents` (null when travel is
-  included), `service_area.base_address` and `service_area.radius_miles`.
-  Everything else is required, so an unconfigured storefront is
-  `storefront_config = null` on the column, not a half-filled object.
+Photos are Unsplash URLs sized through `sizedPhoto`. Verify any new URL returns
+a real image before committing it.
 
 ## Database
 

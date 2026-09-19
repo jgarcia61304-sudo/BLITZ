@@ -1,92 +1,97 @@
-import { useEffect, useRef } from 'react'
-import type { CSSProperties } from 'react'
-import type { Seo, StorefrontConfig } from '../types/storefront'
-import { fontStack, hasText, readableOn } from './format'
-import { Booking } from './sections/Booking'
+import { useEffect } from 'react'
+import type { StorefrontContent } from '../types/storefront'
+import { Reveal } from './Reveal'
+import { hasText } from './format'
+import { useSmoothScroll } from './scroll'
 import { Faq } from './sections/Faq'
 import { Footer } from './sections/Footer'
 import { Gallery } from './sections/Gallery'
 import { Hero } from './sections/Hero'
-import { Hours } from './sections/Hours'
-import { Policies } from './sections/Policies'
-import { ServiceArea } from './sections/ServiceArea'
+import { Location } from './sections/Location'
+import { MoneyEngine } from './sections/MoneyEngine'
+import { ProofBar } from './sections/ProofBar'
+import { Reviews } from './sections/Reviews'
 import { Services } from './sections/Services'
 import { StickyBar } from './sections/StickyBar'
 
-// Brand values become custom properties on the storefront root. Everything
-// else in storefront.css mixes down from these, so a config fully determines
-// how its storefront looks.
-function brandStyle(config: StorefrontConfig): CSSProperties {
-  const colors = config?.brand?.colors
-  const fonts = config?.brand?.fonts
-  const vars: Record<string, string> = {}
-  const set = (name: string, value: string | undefined) => {
-    if (hasText(value)) vars[name] = value
-  }
+const ACTION_LABEL = { beauty: 'Book Now', events: 'Get a Quote', fitness: 'Subscribe' } as const
 
-  set('--sf-bg', colors?.background)
-  set('--sf-text', colors?.text)
-  set('--sf-primary', colors?.primary)
-  set('--sf-accent', colors?.accent)
-  if (hasText(colors?.primary)) vars['--sf-on-primary'] = readableOn(colors.primary)
-  if (hasText(colors?.accent)) vars['--sf-on-accent'] = readableOn(colors.accent)
-  set('--sf-font-display', fontStack(fonts?.display, 'display'))
-  set('--sf-font-body', fontStack(fonts?.body, 'body'))
-
-  return vars as CSSProperties
-}
-
-function useDocumentMeta(seo: Seo | undefined) {
+function useDocumentMeta(content: StorefrontContent) {
   useEffect(() => {
     const previousTitle = document.title
-    const title = seo?.title
-    if (hasText(title)) document.title = title
+    const title = `${content.business.name} — ${content.business.tagline}`
+    document.title = title
 
-    const description = seo?.description
     let tag = document.head.querySelector<HTMLMetaElement>('meta[name="description"]')
     const previousDescription = tag?.getAttribute('content') ?? null
     let created = false
-    if (hasText(description)) {
-      if (!tag) {
-        tag = document.createElement('meta')
-        tag.setAttribute('name', 'description')
-        document.head.appendChild(tag)
-        created = true
-      }
-      tag.setAttribute('content', description)
+    if (!tag) {
+      tag = document.createElement('meta')
+      tag.setAttribute('name', 'description')
+      document.head.appendChild(tag)
+      created = true
     }
+    tag.setAttribute('content', `${content.business.tagline} ${content.business.serviceArea}.`)
 
     return () => {
       document.title = previousTitle
       if (created) tag?.remove()
       else if (tag && previousDescription !== null) tag.setAttribute('content', previousDescription)
     }
-  }, [seo])
+  }, [content])
 }
 
-export function Storefront({ config }: { config: StorefrontConfig }) {
-  const sentinel = useRef<HTMLDivElement>(null)
-  useDocumentMeta(config?.seo)
+/*
+ * Section order is fixed by docs/storefront-spec.md and does not vary:
+ * Hero -> ProofBar -> Services -> Gallery -> MoneyEngine -> Reviews -> FAQ
+ * -> Location -> Footer, plus a persistent StickyBar.
+ */
+export function Storefront({ content }: { content: StorefrontContent }) {
+  useSmoothScroll()
+  useDocumentMeta(content)
 
-  // Every booking call to action points at the booking section, so they all
-  // disappear together when a config carries no booking settings.
-  const showBooking = Boolean(config?.booking)
+  const vertical = content.business.category
+  const fromPrice = Math.min(...content.services.map((service) => service.price))
+  const showLocation =
+    hasText(content.contact.address) ||
+    hasText(content.business.serviceArea) ||
+    Object.keys(content.contact.hours ?? {}).length > 0
 
   return (
-    <div className="storefront" style={brandStyle(config)}>
+    <div className="storefront" data-theme={content.theme}>
       <main>
-        <Hero brand={config?.brand} showCta={showBooking} />
-        <div ref={sentinel} aria-hidden="true" />
-        <Services services={config?.services} />
-        <Gallery gallery={config?.gallery} />
-        <Booking booking={config?.booking} />
-        <ServiceArea area={config?.service_area} booking={config?.booking} />
-        <Hours availability={config?.availability} />
-        <Policies policies={config?.policies} />
-        <Faq faq={config?.faq} />
+        <Hero content={content} />
+        <ProofBar proof={content.proof} />
+
+        <Reveal className="sf-section" aria-labelledby="sf-services-title">
+          <Services services={content.services} />
+        </Reveal>
+
+        <Reveal className="sf-section" aria-labelledby="sf-gallery-title">
+          <Gallery photos={content.photos} businessName={content.business.name} />
+        </Reveal>
+
+        <Reveal className="sf-section sf-money" id="book" aria-labelledby="sf-money-title">
+          <MoneyEngine vertical={vertical} money={content.money} fromPrice={fromPrice} />
+        </Reveal>
+
+        <Reveal className="sf-section" aria-labelledby="sf-reviews-title">
+          <Reviews reviews={content.reviews} />
+        </Reveal>
+
+        <Reveal className="sf-section" aria-labelledby="sf-faq-title">
+          <Faq faq={content.faq} />
+        </Reveal>
+
+        {showLocation && (
+          <Reveal className="sf-section" aria-labelledby="sf-location-title">
+            <Location contact={content.contact} serviceArea={content.business.serviceArea} />
+          </Reveal>
+        )}
       </main>
-      <Footer brand={config?.brand} contact={config?.contact} />
-      {showBooking && <StickyBar watch={sentinel} />}
+
+      <Footer business={content.business} contact={content.contact} />
+      <StickyBar fromPrice={fromPrice} action={ACTION_LABEL[vertical]} />
     </div>
   )
 }
