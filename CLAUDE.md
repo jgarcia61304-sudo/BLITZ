@@ -20,6 +20,12 @@
   density over whitespace — these are working tools.
 - Client storefronts are mobile-first, designed at 390px.
 - Ask before adding a dependency.
+- Card numbers are never stored. Stripe holds payment methods; we store
+  stripe_customer_id and stripe_payment_intent_id only.
+- All money is integer cents.
+- Client addresses are personal data. Every query is scoped by business_id
+  under RLS.
+- Appointments snapshot service name, price and duration at booking time.
 
 ## Commands
 
@@ -41,6 +47,7 @@ src/styles/index.css    Tailwind entry, token-to-utility mapping, component clas
 src/auth/               AuthContext (current user), ProtectedRoute
 src/pages/              Login, Admin, Portal
 src/lib/supabase.ts     Supabase client
+src/types/              shared types, incl. the storefront_config shape
 src/App.tsx             route table
 supabase/migrations/    schema and RLS policies
 public/_redirects       SPA fallback for Cloudflare Pages
@@ -63,9 +70,54 @@ public/_redirects       SPA fallback for Cloudflare Pages
 - **`supabase` is `null` when env vars are missing** rather than throwing at
   import. Guard before use.
 
+## Storefront config
+
+`businesses.storefront_config` is jsonb. `src/types/storefront.ts` defines its
+shape and is the source of truth; this table is the map.
+
+| Key | Holds |
+| --- | --- |
+| `brand` | name, tagline, logo, colors, fonts |
+| `contact` | phone, email, instagram, booking email |
+| `services` | the menu — id, name, description, price, duration, active |
+| `gallery` | images with caption, alt text, order |
+| `booking` | payment mode, deposit, cancellation window, fees, travel |
+| `availability` | timezone, weekly hours, blackout dates, notice, buffer |
+| `service_area` | mobile flag, description, base address, radius |
+| `policies` | cancellation and late text, plus extra sections |
+| `faq` | questions with order |
+| `seo` | title, description, og image |
+
+Conventions across the whole config:
+
+- Money is integer cents — never floats, never strings.
+- Times of day are 24h `'HH:MM'`, dates are `'YYYY-MM-DD'`, timezone is an IANA
+  name. Timestamps in Postgres are timestamptz.
+- `services[].id` is what `appointments.service_id` points at. It has to stay
+  stable — changing it orphans the link from every past appointment.
+- Only four fields are nullable: `booking.deposit_cents` (null unless
+  payment_mode is `deposit`), `booking.travel_fee_cents` (null when travel is
+  included), `service_area.base_address` and `service_area.radius_miles`.
+  Everything else is required, so an unconfigured storefront is
+  `storefront_config = null` on the column, not a half-filled object.
+
 ## Database
 
-One table, `businesses`, defined in `supabase/migrations/`. RLS is on and every
-policy is `owner_id = auth.uid()` — a user only ever sees their own rows. The
-`status` column (`prospect` / `pitched` / `client` / `live`) is what separates
-the admin view from the portal view.
+Three tables, migrations in `supabase/migrations/` applied in filename order.
+
+- `businesses` — one row per business, the spine of the app.
+- `clients` — belongs to a business.
+- `appointments` — belongs to a business and a client.
+
+RLS is on for all three and there is no cross-business access. `businesses` is
+scoped by `owner_id = auth.uid()`. `clients` and `appointments` are scoped by an
+`exists` check against the owning `businesses` row. Appointment writes also
+require the client to belong to the same business, so no row can straddle two
+businesses.
+
+`businesses.status` (prospect / pitched / client / live) is what separates the
+admin view from the portal view. `appointments.status` is a separate pipeline
+(scheduled / completed / cancelled / late_cancelled / no_show).
+
+Indexes: `clients (business_id)`, `appointments (business_id, starts_at)`,
+`appointments (client_id)`.
