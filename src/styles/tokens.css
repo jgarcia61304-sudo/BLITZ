@@ -1,0 +1,49 @@
+/* BLITZ only. Render client storefronts outside .blitz-app. */
+.blitz-app {
+  --bg: #FFFFFF;
+  --surface: #FAFAFA;
+  --surface-raised: #F4F4F5;
+  --border: #E4E4E7;
+  --border-strong: #D4D4D8;
+
+  --text: #0A0A0A;
+  --text-muted: #52525B;
+  --text-subtle: #A1A1AA;
+
+  --accent: #7C3AED;
+  --accent-hover: #6D28D9;
+  --accent-subtle: #F3EEFF;
+  --accent-text: #FFFFFF;
+
+  --status-prospect: #A1A1AA;
+  --status-pitched: #7C3AED;
+  --status-client: #2563EB;
+  --status-live: #16A34A;
+
+  --font-display: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  --font-body: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  --font-weight-display: 700;
+  --font-weight-body: 400;
+  --font-weight-medium: 500;
+  --tracking-display: -0.035em;
+
+  --text-xs: 12px;
+  --text-sm: 14px;
+  --text-base: 15px;
+  --text-lg: 18px;
+  --text-xl: 24px;
+  --text-2xl: 32px;
+
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-6: 24px;
+  --space-8: 32px;
+  --space-12: 48px;
+  --space-16: 64px;
+
+  --radius-sm: 6px;
+  --radius: 10px;
+  --radius-lg: 14px;
+}

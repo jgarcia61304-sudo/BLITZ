@@ -1,0 +1,192 @@
+@import 'tailwindcss';
+@import './tokens.css';
+
+@theme inline {
+  --color-*: initial;
+  --color-bg: var(--bg);
+  --color-surface: var(--surface);
+  --color-surface-raised: var(--surface-raised);
+  --color-border: var(--border);
+  --color-border-strong: var(--border-strong);
+  --color-text: var(--text);
+  --color-text-muted: var(--text-muted);
+  --color-text-subtle: var(--text-subtle);
+  --color-accent: var(--accent);
+  --color-accent-hover: var(--accent-hover);
+  --color-accent-subtle: var(--accent-subtle);
+  --color-accent-text: var(--accent-text);
+  --color-status-prospect: var(--status-prospect);
+  --color-status-pitched: var(--status-pitched);
+  --color-status-client: var(--status-client);
+  --color-status-live: var(--status-live);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+}
+
+.blitz-app {
+  min-height: 100dvh;
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--font-body);
+  font-size: var(--text-base);
+  font-weight: var(--font-weight-body);
+  line-height: 1.5;
+}
+
+.blitz-app .app-header {
+  padding: var(--space-6);
+  border-bottom: 1px solid var(--border);
+}
+
+.blitz-app .app-name {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: var(--text-xl);
+  font-weight: var(--font-weight-display);
+  letter-spacing: var(--tracking-display);
+  line-height: 1.2;
+}
+
+.blitz-app .page-content {
+  padding: var(--space-6);
+}
+
+.blitz-app .page-heading {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: var(--text-2xl);
+  font-weight: var(--font-weight-display);
+  letter-spacing: var(--tracking-display);
+  line-height: 1.2;
+}
+
+.blitz-app .auth-content {
+  display: flex;
+  justify-content: center;
+  padding: var(--space-12) var(--space-6);
+}
+
+.blitz-app .auth-card {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-6);
+  width: 100%;
+  max-width: 400px;
+  padding: var(--space-6);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  background: var(--surface);
+}
+
+.blitz-app .auth-form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.blitz-app .field-label {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  color: var(--text-muted);
+  font-size: var(--text-sm);
+  font-weight: var(--font-weight-medium);
+}
+
+.blitz-app .text-input {
+  width: 100%;
+  min-height: var(--space-12);
+  padding: var(--space-3);
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-sm);
+  background: var(--surface-raised);
+  color: var(--text);
+  font-family: var(--font-body);
+  font-size: var(--text-base);
+  font-weight: var(--font-weight-body);
+  line-height: 1.5;
+}
+
+.blitz-app .text-input::placeholder {
+  color: var(--text-subtle);
+  opacity: 1;
+}
+
+.blitz-app .text-input:focus {
+  border-color: var(--accent);
+  outline: 2px solid var(--accent-subtle);
+  outline-offset: 2px;
+}
+
+.blitz-app .primary-button,
+.blitz-app .text-button {
+  min-height: var(--space-12);
+  padding: var(--space-3) var(--space-4);
+  border: 0;
+  border-radius: var(--radius-sm);
+  font-family: var(--font-body);
+  font-size: var(--text-sm);
+  font-weight: var(--font-weight-medium);
+  line-height: 1.5;
+  cursor: pointer;
+}
+
+.blitz-app .primary-button {
+  background: var(--accent);
+  color: var(--accent-text);
+}
+
+.blitz-app .primary-button:hover:not(:disabled) {
+  background: var(--accent-hover);
+}
+
+.blitz-app .text-button {
+  background: transparent;
+  color: var(--accent);
+}
+
+.blitz-app .text-button:hover:not(:disabled) {
+  color: var(--accent-hover);
+  text-decoration: underline;
+  text-underline-offset: var(--space-1);
+}
+
+.blitz-app .primary-button:focus-visible,
+.blitz-app .text-button:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: var(--space-1);
+}
+
+.blitz-app .primary-button:disabled,
+.blitz-app .text-button:disabled {
+  opacity: 0.6;
+  cursor: wait;
+}
+
+.blitz-app .form-message,
+.blitz-app .auth-status {
+  margin: 0;
+  color: var(--text-muted);
+  font-size: var(--text-sm);
+  overflow-wrap: anywhere;
+}
+
+@media (min-width: 640px) {
+  .blitz-app .app-header {
+    padding-inline: var(--space-12);
+  }
+
+  .blitz-app .page-content {
+    padding: var(--space-12);
+  }
+
+  .blitz-app .auth-content {
+    padding-top: var(--space-16);
+  }
+}
