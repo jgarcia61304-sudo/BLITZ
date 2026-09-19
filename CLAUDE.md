@@ -74,6 +74,23 @@ public/_redirects          SPA fallback for Cloudflare Pages
 - **`supabase` is `null` when env vars are missing** rather than throwing at
   import. Guard before use.
 
+## Libraries
+
+- `motion`, `lenis` and `embla-carousel-react` are installed but not imported
+  anywhere yet, so they cost nothing in the bundle until something uses them.
+- shadcn/ui is configured: `components.json`, the `@/*` alias pointing at
+  `src/`, and components generated into `src/components/ui/`.
+- **shadcn's base layer is scoped to `.blitz-app` and must stay that way.** As
+  shadcn ships it, the layer targets `*`, `body` and `html`, which reaches into
+  the storefront tree and overrides tokens.css — against two rules at once. Only
+  the `border-border outline-ring/50` default its components need is kept, under
+  `.blitz-app`.
+- shadcn's semantic tokens sit on `:root` and are **not** BLITZ's. `bg-primary`
+  is shadcn's near-black, not the `--accent` purple. `--accent` and `--border`
+  exist in both systems; inside `.blitz-app` tokens.css wins, so a shadcn
+  `bg-accent` renders solid purple rather than the subtle hover grey it expects.
+  Map shadcn's tokens onto BLITZ's before leaning on its components.
+
 ## Storefronts
 
 `/s/:slug` is public and renders a client storefront from one `StorefrontConfig`.
