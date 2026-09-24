@@ -107,6 +107,18 @@
   padding-block: 44px;
 }
 
+.sf-visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  border: 0;
+  clip-path: inset(50%);
+  overflow: hidden;
+  white-space: nowrap;
+}
+
 .sf-eyebrow {
   margin: 0 0 6px;
   color: var(--sf-muted);
@@ -278,6 +290,280 @@
   color: var(--sf-accent);
   font-size: var(--sf-step--1);
   letter-spacing: 0.1em;
+}
+
+/*
+ * Offers — composed from `prominence`, not one card at three widths.
+ *
+ * Three axes separate the tiers so the hierarchy reads without stopping to
+ * read: size (40px / 22px / 16px title), typeface (display, display, body)
+ * and density (one full-bleed panel, two cards, a stack of hairline rows).
+ */
+
+.sf-offers {
+  display: flex;
+  flex-direction: column;
+  gap: 40px;
+}
+
+/* --- hero: full-bleed, the loudest thing on the page --- */
+
+.sf-offer-hero {
+  position: relative;
+  display: flex;
+  align-items: center;
+  isolation: isolate;
+  overflow: hidden;
+  /* Outweighs a feature card on purpose, while staying well under the page
+     hero's 86svh so it never competes with the business name. */
+  min-height: 56svh;
+  padding-block: 72px;
+}
+
+.sf-offer-hero-media {
+  position: absolute;
+  inset: 0;
+  z-index: -2;
+}
+
+.sf-offer-hero-media img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+/* Over a photo, text goes white on a scrim — same treatment as the page hero. */
+.sf-offer-hero[data-media='photo'] {
+  color: #FFFFFF;
+}
+
+.sf-offer-hero[data-media='photo']::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background: linear-gradient(180deg, rgb(0 0 0 / 0.44) 0%, rgb(0 0 0 / 0.68) 100%);
+}
+
+/* No image: a deliberate tinted panel, never an empty frame. */
+.sf-offer-hero[data-media='none'] {
+  background:
+    radial-gradient(
+      130% 100% at 10% 0%,
+      color-mix(in srgb, var(--sf-accent) 28%, var(--sf-bg)) 0%,
+      transparent 62%
+    ),
+    color-mix(in srgb, var(--sf-accent) 9%, var(--sf-surface));
+  border-block: 1px solid var(--sf-border);
+}
+
+.sf-offer-badge {
+  display: inline-flex;
+  align-items: center;
+  margin: 0 0 16px;
+  padding: 7px 14px;
+  border-radius: 999px;
+  background: var(--sf-accent);
+  color: var(--sf-on-accent);
+  font-size: var(--sf-step--1);
+  font-weight: 600;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+}
+
+.sf-offer-hero-title {
+  margin: 0;
+  max-width: 15ch;
+  font-family: var(--sf-display);
+  font-size: var(--sf-step-4);
+  font-weight: 600;
+  letter-spacing: -0.03em;
+  line-height: 1.02;
+}
+
+.sf-offer-hero-desc {
+  margin: 16px 0 0;
+  max-width: 34ch;
+  font-size: var(--sf-step-1);
+}
+
+.sf-offer-hero[data-media='photo'] .sf-offer-hero-desc {
+  color: rgb(255 255 255 / 0.9);
+}
+
+.sf-offer-hero[data-media='none'] .sf-offer-hero-desc {
+  color: var(--sf-muted);
+}
+
+.sf-offer-hero-action {
+  margin: 28px 0 0;
+}
+
+/* --- feature: substantial, clearly under hero and over listed --- */
+
+.sf-offer-features {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 16px;
+}
+
+.sf-offer-feature {
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  border: 1px solid var(--sf-border);
+  border-radius: var(--sf-radius-lg);
+  background: var(--sf-surface);
+}
+
+.sf-offer-feature-media {
+  width: 100%;
+  aspect-ratio: 16 / 10;
+  object-fit: cover;
+}
+
+.sf-offer-feature-body {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 20px;
+}
+
+/* Text-only feature: tinted and taller, so it reads as a choice not a gap. */
+.sf-offer-feature[data-media='none'] .sf-offer-feature-body {
+  padding: 28px 22px 24px;
+  background: linear-gradient(
+    180deg,
+    color-mix(in srgb, var(--sf-accent) 14%, var(--sf-surface)) 0%,
+    var(--sf-surface) 72%
+  );
+}
+
+.sf-offer-feature-badge {
+  margin: 0;
+  padding: 5px 11px;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--sf-accent) 18%, var(--sf-surface));
+  color: var(--sf-text);
+  font-size: var(--sf-step--1);
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+.sf-offer-feature-title {
+  margin: 0;
+  font-family: var(--sf-display);
+  font-size: var(--sf-step-2);
+  font-weight: 600;
+  letter-spacing: -0.015em;
+  line-height: 1.2;
+}
+
+.sf-offer-feature-desc {
+  margin: 0;
+  color: var(--sf-muted);
+  font-size: var(--sf-step--1);
+}
+
+.sf-offer-feature-action {
+  display: inline-flex;
+  align-items: center;
+  margin-top: auto;
+  /* Meets the 44px tap-target floor without looking like a second button. */
+  min-height: 44px;
+  color: var(--sf-accent);
+  font-size: var(--sf-step--1);
+  font-weight: 600;
+  text-decoration: none;
+  background: none;
+  border: 0;
+  font-family: inherit;
+  cursor: pointer;
+}
+
+.sf-offer-feature-action:hover {
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+/* --- listed: quiet, compact, text-led. A footnote, not an offer. --- */
+
+.sf-offer-listed-group {
+  border-top: 1px solid var(--sf-border);
+  padding-top: 18px;
+}
+
+.sf-offer-listed {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.sf-offer-listed-item + .sf-offer-listed-item {
+  border-top: 1px solid var(--sf-border);
+}
+
+.sf-offer-listed-link {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  width: 100%;
+  min-height: var(--sf-tap);
+  padding: 12px 0;
+  border: 0;
+  background: none;
+  color: inherit;
+  font-family: inherit;
+  text-align: left;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.sf-offer-listed-link:focus-visible {
+  outline: 3px solid var(--sf-accent);
+  outline-offset: -3px;
+}
+
+.sf-offer-listed-text {
+  flex: 1;
+  min-width: 0;
+}
+
+.sf-offer-listed-title {
+  display: block;
+  font-size: var(--sf-step-0);
+  font-weight: 600;
+  line-height: 1.3;
+}
+
+.sf-offer-listed-desc {
+  display: block;
+  margin-top: 2px;
+  color: var(--sf-muted);
+  font-size: var(--sf-step--1);
+}
+
+.sf-offer-listed-badge {
+  flex: none;
+  color: var(--sf-muted);
+  font-size: var(--sf-step--1);
+}
+
+.sf-offer-listed-arrow {
+  flex: none;
+  width: 8px;
+  height: 8px;
+  border-top: 2px solid var(--sf-muted);
+  border-right: 2px solid var(--sf-muted);
+  transform: rotate(45deg);
+  transition: transform 160ms ease-out;
+}
+
+.sf-offer-listed-link:hover .sf-offer-listed-arrow {
+  transform: rotate(45deg) translate(2px, -2px);
 }
 
 /* Services */
@@ -730,6 +1016,22 @@
 
   .sf-h2 {
     font-size: 34px;
+  }
+
+  .sf-offers {
+    gap: 56px;
+  }
+
+  .sf-offer-hero {
+    padding-block: 104px;
+  }
+
+  .sf-offer-hero-title {
+    font-size: 52px;
+  }
+
+  .sf-offer-features {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
   .sf-gallery {

@@ -46,6 +46,32 @@ export const reviewSchema = z.object({
 
 export const faqSchema = z.object({ q: nonEmpty, a: nonEmpty })
 
+// How loudly an offer is rendered. The renderer composes the section from
+// this; it is not a style flag on a uniform card.
+export const PROMINENCE = ['hero', 'feature', 'listed'] as const
+export type Prominence = (typeof PROMINENCE)[number]
+
+// A discriminated union so `url` is required, and typed as present, exactly
+// when the destination is external.
+export const offerDestinationSchema = z.discriminatedUnion('kind', [
+  z.object({ kind: z.literal('external'), url: nonEmpty }),
+  z.object({ kind: z.literal('booking'), url: nonEmpty.optional() }),
+  z.object({ kind: z.literal('email'), url: nonEmpty.optional() }),
+])
+
+export const offerSchema = z.object({
+  id: nonEmpty,
+  title: nonEmpty,
+  // One short line.
+  description: nonEmpty.optional(),
+  imageUrl: nonEmpty.optional(),
+  prominence: z.enum(PROMINENCE),
+  destination: offerDestinationSchema,
+  // e.g. 'Starts Oct 5'.
+  badge: nonEmpty.optional(),
+  order: z.number().int(),
+})
+
 export const storefrontContentSchema = z.object({
   business: z.object({
     name: nonEmpty,
@@ -69,6 +95,15 @@ export const storefrontContentSchema = z.object({
       heading: nonEmpty,
       // Short paragraph, the "about" copy.
       body: nonEmpty,
+    })
+    .optional(),
+  // Optional, and separate from `services`: distinct things a brand sells that
+  // are not bookable line items. At most one may lead — two heroes is a
+  // content mistake that holds the storefront rather than rendering two leads.
+  offers: z
+    .array(offerSchema)
+    .refine((list) => list.filter((offer) => offer.prominence === 'hero').length <= 1, {
+      message: 'At most one offer may have prominence "hero".',
     })
     .optional(),
   services: z.array(serviceSchema).min(1),
@@ -96,6 +131,8 @@ export type StorefrontContent = z.infer<typeof storefrontContentSchema>
 export type Service = z.infer<typeof serviceSchema>
 export type Review = z.infer<typeof reviewSchema>
 export type FaqEntry = z.infer<typeof faqSchema>
+export type Offer = z.infer<typeof offerSchema>
+export type OfferDestination = z.infer<typeof offerDestinationSchema>
 
 /** Fail closed: anything that does not validate is not a storefront. */
 export function parseStorefront(input: unknown) {

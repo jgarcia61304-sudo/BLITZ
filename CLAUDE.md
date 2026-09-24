@@ -106,9 +106,19 @@ there is no per-client code and no per-client design decision.
   and never add a fifth without re-running the contrast check. Every set is
   verified at body text >= 4.5:1 on both bg and surface, on-accent >= 4.5:1 on
   accent, and accent >= 3:1 on bg.
-- Section order is fixed and must not be reordered: Hero, ProofBar, Services,
-  Gallery, MoneyEngine, Reviews, FAQ, Location, Footer, plus a persistent
-  StickyBar.
+- Section order is fixed and must not be reordered: Hero, ProofBar, Offers,
+  Services, Gallery, MoneyEngine, Reviews, FAQ, Location, Footer, plus a
+  persistent StickyBar. Offers sits below ProofBar rather than directly after
+  Hero because ProofBar is pulled up over the Hero with a negative margin;
+  anything inserted between the two breaks that overlap. This extends the order
+  in `docs/storefront-spec.md`, which predates offers.
+- **Offers is composed from `prominence`, not styled from it.** `hero` is a
+  full-bleed panel, `feature` a card (two-up from 768px), `listed` a hairline
+  row. They differ on three axes at once — size (40/22/16px title), typeface
+  (display, display, body) and density — so the hierarchy reads without
+  stopping to read. Do not collapse them into one card at three widths.
+  Offers with no `imageUrl` get their own treatment at each level rather than
+  an empty frame. Absent or empty `offers` renders nothing at all.
 - **MoneyEngine is the only section that varies**, switching on
   `business.category` (`beauty` / `events` / `fitness`). Its copy and action
   change; its layout does not.
@@ -139,6 +149,15 @@ that outrank it:
 - **Services keep an `id`.** The spec's service shape omits it, but
   `appointments.service_id` points at it, and a past appointment loses its link
   to the menu without one.
+
+`offers` is optional and separate from `services`: distinct things a brand
+sells that are not bookable line items. The schema allows **at most one**
+offer with `prominence: 'hero'` — a second one fails validation and holds the
+whole storefront, rather than rendering two leads. `destination` is a
+discriminated union, so `url` is required and typed as present exactly when
+`kind` is `'external'`. `'booking'`, and `'email'` with no address to send to,
+both fall back to the booking section; real booking and payment are a later
+phase.
 
 Photos are Unsplash URLs sized through `sizedPhoto`. Verify any new URL returns
 a real image before committing it.

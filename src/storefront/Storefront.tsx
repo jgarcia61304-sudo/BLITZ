@@ -9,6 +9,7 @@ import { Gallery } from './sections/Gallery'
 import { Hero } from './sections/Hero'
 import { Location } from './sections/Location'
 import { MoneyEngine } from './sections/MoneyEngine'
+import { Offers } from './sections/Offers'
 import { ProofBar } from './sections/ProofBar'
 import { Reviews } from './sections/Reviews'
 import { Services } from './sections/Services'
@@ -62,6 +63,17 @@ export function Storefront({ content }: { content: StorefrontContent }) {
       <main>
         <Hero content={content} />
         <ProofBar proof={content.proof} />
+
+        {/*
+          After Hero, before Services. It sits below ProofBar rather than above
+          it because ProofBar is pulled up over the Hero with a negative margin;
+          inserting anything between the two would break that overlap.
+        */}
+        {content.offers && content.offers.length > 0 && (
+          <Reveal className="sf-section sf-offers" aria-labelledby="sf-offers-title">
+            <Offers offers={content.offers} contactEmail={content.contact.email} />
+          </Reveal>
+        )}
 
         <Reveal className="sf-section" aria-labelledby="sf-services-title">
           <Services services={content.services} />

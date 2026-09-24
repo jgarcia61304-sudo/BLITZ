@@ -24,6 +24,10 @@ const PHOTOS = [
   U('photo-1621605815971-fbc98d665033'), // clippers and comb
 ]
 
+// Solid colour block, inline, so offer art makes no external request.
+const block = (hex: string) =>
+  `data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='1200' height='800'%3E%3Crect width='1200' height='800' fill='%23${hex}'/%3E%3C/svg%3E`
+
 export const placeholderStorefront: StorefrontContent = {
   business: {
     name: 'Fade Theory',
@@ -38,6 +42,63 @@ export const placeholderStorefront: StorefrontContent = {
     reviewCount: 184,
     scarcity: 'Usually booked about five days out.',
   },
+  offers: [
+    {
+      id: 'offer_cut_club',
+      title: 'Cut Club',
+      description:
+        'Twelve cuts a year at your door for one monthly price, with priority booking and no travel fee.',
+      imageUrl: block('14342A'),
+      prominence: 'hero',
+      destination: { kind: 'external', url: 'https://example.com/fade-theory/cut-club' },
+      badge: 'Enrolling through October 5',
+      order: 0,
+    },
+    {
+      id: 'offer_beard_kit',
+      title: 'The Beard Kit',
+      description: 'Oil, balm and a sandalwood comb, boxed. The same three we reach for in the chair.',
+      imageUrl: block('6E4B2A'),
+      prominence: 'feature',
+      destination: { kind: 'external', url: 'https://example.com/fade-theory/shop/beard-kit' },
+      order: 0,
+    },
+    {
+      // No imageUrl on purpose — proves the text-only treatment holds up
+      // beside a feature that has art.
+      id: 'offer_chairside',
+      title: 'Chairside Sessions',
+      description: 'A half day for barbers on fading, clipper control and running a mobile round.',
+      prominence: 'feature',
+      destination: { kind: 'email' },
+      badge: 'Six seats',
+      order: 1,
+    },
+    {
+      id: 'offer_gift_card',
+      title: 'Gift cards',
+      description: 'Any amount, sent by email the same day.',
+      prominence: 'listed',
+      destination: { kind: 'email' },
+      order: 0,
+    },
+    {
+      id: 'offer_referral',
+      title: 'Refer a friend',
+      description: 'They take $10 off a first cut, and so do you.',
+      prominence: 'listed',
+      destination: { kind: 'booking' },
+      order: 1,
+    },
+    {
+      id: 'offer_clipper_code',
+      title: 'Clippers, 15% off',
+      description: 'Our supplier kit with the code FADE15 at checkout.',
+      prominence: 'listed',
+      destination: { kind: 'external', url: 'https://example.com/fade-theory/clippers' },
+      order: 2,
+    },
+  ],
   services: [
     {
       id: 'svc_signature',
