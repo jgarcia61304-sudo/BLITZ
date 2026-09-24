@@ -143,25 +143,22 @@ that outrank it:
 Photos are Unsplash URLs sized through `sizedPhoto`. Verify any new URL returns
 a real image before committing it.
 
-**Three fields are optional, unrendered content.** No section reads them yet —
-adding a section is separate work. A storefront that omits all three renders
-exactly as it did before them.
+**`intro: { heading, body }` is optional, unrendered content.** No section
+reads it yet — adding one is separate work. A storefront that omits it renders
+exactly as it did before.
 
-- `intro: { heading, body }` — the "about" copy.
-- `testimonials: [{ quote, author, source, date, order }]` — a richer,
-  orderable alternative to `reviews`, carrying a named source (e.g. 'Google',
-  'Instagram'). Distinct from the spec-mandated `reviews` array, which stays
-  required at 2-3 entries.
-- `reputation: { rating, review_count, source, profile_url }` — an aggregate
-  rating pulled from a verifiable external source, with a link to that
-  profile. Distinct from `proof`, which is editorial marketing copy
-  (`proof.rating` / `proof.reviewCount`) rather than a sourced, linkable
-  figure.
+**`reviews` and `proof` carry optional source attribution — there is no
+separate testimonials or reputation shape.** An earlier pass added
+`testimonials` and `reputation` as new arrays/objects; they duplicated
+`reviews` and `proof` and were merged into them instead:
 
-Each object is optional as a whole; once present, its own fields are required
-(fail closed still applies inside it). `reputation`'s fields use snake_case —
-inconsistent with the rest of the schema's camelCase — because they were
-specified that way and left as given.
+- Each `reviews[]` entry gains `source`, `date` and `order`, all optional.
+  `date` was required; it is optional now too, so a review can be just a quote
+  and an author.
+- `proof` gains `source` and `profileUrl`, both optional, for when the rating
+  is a sourced, linkable figure (e.g. 'Google') rather than editorial copy.
+
+Every field here is plain camelCase, like the rest of the schema.
 
 ## Database
 

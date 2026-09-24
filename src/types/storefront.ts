@@ -38,19 +38,13 @@ export const serviceSchema = z.object({
 export const reviewSchema = z.object({
   quote: nonEmpty,
   author: nonEmpty,
-  date: nonEmpty,
+  // Optional attribution and manual ordering. Was: date required, no source.
+  source: nonEmpty.optional(),
+  date: nonEmpty.optional(),
+  order: z.number().int().optional(),
 })
 
 export const faqSchema = z.object({ q: nonEmpty, a: nonEmpty })
-
-export const testimonialSchema = z.object({
-  quote: nonEmpty,
-  author: nonEmpty,
-  // e.g. 'Google', 'Instagram' — where the quote was left.
-  source: nonEmpty,
-  date: nonEmpty,
-  order: z.number().int(),
-})
 
 export const storefrontContentSchema = z.object({
   business: z.object({
@@ -64,6 +58,10 @@ export const storefrontContentSchema = z.object({
     rating: z.number().min(0).max(5),
     reviewCount: z.number().int().nonnegative(),
     scarcity: z.string().default(''),
+    // Optional: sourced attribution for the rating, e.g. 'Google', with a
+    // link to that profile.
+    source: nonEmpty.optional(),
+    profileUrl: nonEmpty.optional(),
   }),
   // Optional: a storefront without an intro must still render correctly.
   intro: z
@@ -78,9 +76,6 @@ export const storefrontContentSchema = z.object({
   photos: z.array(nonEmpty).min(6),
   // Spec: "2-3 real quotes with attribution."
   reviews: z.array(reviewSchema).min(2).max(3),
-  // Optional: a richer, orderable alternative to `reviews`, carrying a named
-  // source. A storefront without testimonials must still render correctly.
-  testimonials: z.array(testimonialSchema).optional(),
   faq: z.array(faqSchema).min(1),
   contact: z.object({
     phone: z.string().default(''),
@@ -95,25 +90,12 @@ export const storefrontContentSchema = z.object({
     cancellationWindowHrs: z.number().int().nonnegative(),
     stripeAccountId: z.string().default(''),
   }),
-  // Optional: an aggregate rating pulled from an external, verifiable source,
-  // distinct from `proof` (which is editorial marketing copy). A storefront
-  // without reputation data must still render correctly.
-  reputation: z
-    .object({
-      rating: z.number().min(0).max(5),
-      review_count: z.number().int().nonnegative(),
-      // e.g. 'Google'.
-      source: nonEmpty,
-      profile_url: nonEmpty,
-    })
-    .optional(),
 })
 
 export type StorefrontContent = z.infer<typeof storefrontContentSchema>
 export type Service = z.infer<typeof serviceSchema>
 export type Review = z.infer<typeof reviewSchema>
 export type FaqEntry = z.infer<typeof faqSchema>
-export type Testimonial = z.infer<typeof testimonialSchema>
 
 /** Fail closed: anything that does not validate is not a storefront. */
 export function parseStorefront(input: unknown) {
