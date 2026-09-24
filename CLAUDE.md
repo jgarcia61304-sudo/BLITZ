@@ -143,6 +143,26 @@ that outrank it:
 Photos are Unsplash URLs sized through `sizedPhoto`. Verify any new URL returns
 a real image before committing it.
 
+**Three fields are optional, unrendered content.** No section reads them yet —
+adding a section is separate work. A storefront that omits all three renders
+exactly as it did before them.
+
+- `intro: { heading, body }` — the "about" copy.
+- `testimonials: [{ quote, author, source, date, order }]` — a richer,
+  orderable alternative to `reviews`, carrying a named source (e.g. 'Google',
+  'Instagram'). Distinct from the spec-mandated `reviews` array, which stays
+  required at 2-3 entries.
+- `reputation: { rating, review_count, source, profile_url }` — an aggregate
+  rating pulled from a verifiable external source, with a link to that
+  profile. Distinct from `proof`, which is editorial marketing copy
+  (`proof.rating` / `proof.reviewCount`) rather than a sourced, linkable
+  figure.
+
+Each object is optional as a whole; once present, its own fields are required
+(fail closed still applies inside it). `reputation`'s fields use snake_case —
+inconsistent with the rest of the schema's camelCase — because they were
+specified that way and left as given.
+
 ## Database
 
 Three tables, migrations in `supabase/migrations/` applied in filename order.
@@ -187,3 +207,22 @@ If something fails three times in a row, stop and explain what is blocking, in p
 language, without jargon. The user is non-technical.
 
 Report back with what changed and what to look at, not a list of steps taken.
+
+## Skill scoping — not optional
+
+| Skill | Template work (`/templates/`) | Generation pipeline | Client pages (`/s/<slug>`) |
+|---|---|---|---|
+| impeccable LLM commands (shape, craft, critique, polish) | on | off | **never** |
+| impeccable detect (deterministic) | on | on | on |
+| superpowers | on | off | off |
+| ponytail (and ponytail-*) | **off** | on | off |
+| task-observer | on | on | on |
+
+Ponytail biases toward writing less code. That is right for the generation script and wrong for
+the template, where entry motion, layered depth and micro-interactions are requirements — a
+laziness heuristic reads those as over-engineering. Do not invoke ponytail while building a
+template.
+
+Never run an impeccable LLM command on a generated client page. That is a model making a
+per-client design decision, which the governing rule forbids, and two clients' pages would
+silently diverge with nothing to catch it.
